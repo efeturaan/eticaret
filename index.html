@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+        }
+        .message {
+            border-bottom: 1px solid #ddd;
+            padding: 10px 0;
+        }
+        .message:last-child {
+            border-bottom: none;
+        }
+        .username {
+            font-weight: bold;
+            color: #555;
+        }
+        .email {
+            color: #888;
+            font-size: 0.9em;
+        }
+        .content {
+            margin-top: 5px;
+        }
+        form {
+            margin-bottom: 20px;
+        }
+        form input, form textarea, form button {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        form button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        form button:hover {
+            background-color: #45a049;
+        }
+        .actions {
+            margin-top: 10px;
+        }
+        .actions button {
+            margin-right: 5px;
+            padding: 5px 10px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Messages</h1>
+
+        <!-- İletişim Formu -->
+        <form id="contactForm">
+            <input type="text" id="username" placeholder="Kullanıcı Adı" required />
+            <input type="email" id="email" placeholder="E-posta" required />
+            <textarea id="message" rows="5" placeholder="Mesajınızı yazın..." required></textarea>
+            <button type="submit">Gönder</button>
+        </form>
+
+        <!-- Mesajları Göster -->
+        <div id="messages"></div>
+    </div>
+
+    <script>
+        // Mesajları API'den al ve listele
+        const loadMessages = () => {
+            fetch('http://localhost:3000/messages')
+                .then(response => response.json())
+                .then(data => {
+                    const messagesContainer = document.getElementById('messages');
+                    messagesContainer.innerHTML = '';
+                    if (data.length > 0) {
+                        data.forEach(message => {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'message';
+                            messageDiv.innerHTML = `
+                                <div class="username">Kullanıcı Adı: ${message.username}</div>
+                                <div class="email">E-posta: ${message.email}</div>
+                                <div class="content">Mesaj: ${message.mesaj}</div>
+                                <div class="actions">
+                                    <button onclick="updateMessage('${message._id}')">Güncelle</button>
+                                    <button onclick="deleteMessage('${message._id}')">Sil</button>
+                                </div>
+                            `;
+                            messagesContainer.appendChild(messageDiv);
+                        });
+                    } else {
+                        messagesContainer.innerHTML = '<p>Mesaj bulunamadı.</p>';
+                    }
+                })
+                .catch(error => console.error('Mesajlar yüklenirken hata oluştu:', error));
+        };
+
+        // Yeni mesaj ekleme
+        document.getElementById('contactForm').addEventListener('submit', event => {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const mesaj = document.getElementById('message').value;
+
+            fetch('http://localhost:3000/messages', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, mesaj })
+            })
+                .then(() => {
+                    document.getElementById('contactForm').reset();
+                    loadMessages();
+                })
+                .catch(error => console.error('Mesaj gönderilirken hata oluştu:', error));
+        });
+
+        // Mesaj güncelleme
+        const updateMessage = id => {
+            const newMessage = prompt('Yeni mesajınızı girin:');
+            if (newMessage) {
+                fetch(`http://localhost:3000/messages/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mesaj: newMessage })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Güncelleme başarısız oldu.');
+                    }
+                    return response.json();
+                })
+                .then(() => loadMessages())
+                .catch(error => console.error('Güncelleme hatası:', error));
+            }
+        };
+
+        // Mesaj silme
+        const deleteMessage = id => {
+            if (confirm('Bu mesajı silmek istediğinize emin misiniz?')) {
+                fetch(`http://localhost:3000/messages/${id}`, {
+                    method: 'DELETE'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Silme başarısız oldu.');
+                    }
+                    return response.json();
+                })
+                .then(() => loadMessages())
+                .catch(error => console.error('Silme hatası:', error));
+            }
+        };
+
+        // Sayfa yüklendiğinde mesajları yükle
+        loadMessages();
+    </script>
+</body>
+</html>
