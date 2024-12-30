@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Paneli</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            margin: 50px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #5a67d8;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 1rem;
+            color: white;
+            background-color: #5a67d8;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #434190;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f4f4f4;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .message button {
+            margin-right: 10px;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+        }
+
+        .updateButton {
+            background-color: orange;
+            color: white;
+        }
+
+        .deleteButton {
+            background-color: red;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="mainContainer">
+        <h1>Admin Giriş</h1>
+        <form id="loginForm">
+            <input type="text" id="adminUsername" placeholder="Kullanıcı Adı" required>
+            <input type="password" id="adminPassword" placeholder="Şifre" required>
+            <button type="submit">Giriş Yap</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('adminUsername').value;
+            const password = document.getElementById('adminPassword').value;
+
+            if (username === 'admin' && password === '12345') {
+                const mainContainer = document.getElementById('mainContainer');
+                mainContainer.innerHTML = `
+                    <h1>Admin Paneli</h1>
+                    <div id="messagesList"></div>
+                `;
+                loadMessages();
+            } else {
+                alert('Hatalı kullanıcı adı veya şifre.');
+            }
+        });
+
+        const loadMessages = async () => {
+            const response = await fetch('/messages');
+            const messages = await response.json();
+            const messagesList = document.getElementById('messagesList');
+            messagesList.innerHTML = '';
+
+            messages.forEach((msg) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+
+                messageDiv.innerHTML = `
+                    <p><strong>Kullanıcı Adı:</strong> ${msg.username}</p>
+                    <p><strong>E-posta:</strong> ${msg.email}</p>
+                    <p><strong>Mesaj:</strong> ${msg.mesaj}</p>
+                    <button class="updateButton" onclick="updateMessage('${msg._id}')">Güncelle</button>
+                    <button class="deleteButton" onclick="deleteMessage('${msg._id}')">Sil</button>
+                `;
+
+                messagesList.appendChild(messageDiv);
+            });
+        };
+
+        const deleteMessage = async (id) => {
+            await fetch(`/messages/${id}`, { method: 'DELETE' });
+            loadMessages();
+        };
+
+        const updateMessage = async (id) => {
+            const newMessage = prompt("Yeni mesajınızı girin:");
+            if (newMessage) {
+                await fetch(`/messages/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ mesaj: newMessage }),
+                });
+                loadMessages();
+            }
+        };
+    </script>
+</body>
+</html>
