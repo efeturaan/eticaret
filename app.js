@@ -6,21 +6,13 @@ const path = require('path');
 const app = express();
 const port = 3000;
 
-// MongoDB bağlantı URI'si
 const uri = "mongodb+srv://efe:123@cluster0.b2tpx.mongodb.net/?retryWrites=true&w=majority";
 
-// Middleware
 app.use(cors());
 app.use(express.json());
-
-// Ana sayfa (root) endpoint'i
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));  // 'index.html' dosyasını döndür
-});
+app.use(express.static(path.join(__dirname, 'public')));
 
 let db, messagesCollection;
-
-// MongoDB'ye bağlan
 MongoClient.connect(uri)
     .then(client => {
         console.log("MongoDB'ye bağlanıldı");
@@ -29,7 +21,14 @@ MongoClient.connect(uri)
     })
     .catch(error => console.error("MongoDB bağlantı hatası:", error));
 
-// API endpoint: Mesajları getir
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
 app.get('/messages', async (req, res) => {
     try {
         const messages = await messagesCollection.find().toArray();
@@ -40,7 +39,6 @@ app.get('/messages', async (req, res) => {
     }
 });
 
-// API endpoint: Yeni mesaj ekle
 app.post('/messages', async (req, res) => {
     try {
         const newMessage = req.body;
@@ -57,7 +55,6 @@ app.post('/messages', async (req, res) => {
     }
 });
 
-// Güncelleme endpoint'i
 app.put('/messages/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -78,12 +75,11 @@ app.put('/messages/:id', async (req, res) => {
             res.status(404).json({ message: 'Mesaj bulunamadı.' });
         }
     } catch (err) {
-        console.error("Güncelleme hatası:", err);
+        console.error("Hata:", err);
         res.status(500).json({ error: 'Mesaj güncellenirken bir hata oluştu.' });
     }
 });
 
-// Silme endpoint'i
 app.delete('/messages/:id', async (req, res) => {
     try {
         const { id } = req.params;
@@ -100,12 +96,11 @@ app.delete('/messages/:id', async (req, res) => {
             res.status(404).json({ message: 'Mesaj bulunamadı.' });
         }
     } catch (err) {
-        console.error("Silme hatası:", err);
+        console.error("Hata:", err);
         res.status(500).json({ error: 'Mesaj silinirken bir hata oluştu.' });
     }
 });
 
-// Sunucuyu başlat
 app.listen(port, () => {
     console.log(`Sunucu çalışıyor: http://localhost:${port}`);
 });
