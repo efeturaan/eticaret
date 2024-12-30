@@ -3,178 +3,437 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Messages Viewer</title>
+    <title>Mesajlar</title>
     <style>
+        :root {
+            --bg-color: #f9f9f9;
+            --text-color: #333;
+            --top-bar-bg: #5a67d8;
+            --container-bg: #fff;
+            --button-bg: #434190;
+            --notification-bg: #5a67d8;
+            --stat-panel-bg: #eceff1;
+            --highlight-color: #3b82f6;
+        }
+
+        body.dark-mode {
+            --bg-color: #121212;
+            --text-color: #e4e4e4;
+            --top-bar-bg: #333;
+            --container-bg: #1e1e1e;
+            --button-bg: #5a67d8;
+            --notification-bg: #434190;
+            --stat-panel-bg: #2d3748;
+            --highlight-color: #63b3ed;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
         }
-        .container {
-            max-width: 800px;
-            margin: 50px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 20px;
+            background-color: var(--top-bar-bg);
+            color: white;
         }
-        h1 {
-            text-align: center;
-            color: #4CAF50;
+
+        .button-group {
+            display: flex;
+            gap: 15px;
         }
-        .message {
-            border-bottom: 1px solid #ddd;
-            padding: 10px 0;
-        }
-        .message:last-child {
-            border-bottom: none;
-        }
-        .username {
-            font-weight: bold;
-            color: #555;
-        }
-        .email {
-            color: #888;
-            font-size: 0.9em;
-        }
-        .content {
-            margin-top: 5px;
-        }
-        form {
-            margin-bottom: 20px;
-        }
-        form input, form textarea, form button {
-            width: 100%;
-            padding: 10px;
-            margin: 5px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        form button {
-            background-color: #4CAF50;
+
+        .admin-button {
+            padding: 10px 15px;
+            background-color: var(--button-bg);
             color: white;
             border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1rem;
             cursor: pointer;
         }
-        form button:hover {
-            background-color: #45a049;
+
+        .admin-button:hover {
+            background-color: #07091c;
         }
-        .actions {
-            margin-top: 10px;
+
+        .dark-mode-toggle, .stats-toggle {
+            padding: 10px;
+            background-color: var(--button-bg);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
         }
-        .actions button {
-            margin-right: 5px;
+
+        .dark-mode-toggle:hover, .stats-toggle:hover {
+            background-color: #07091c;
+        }
+
+        .search-bar-container {
+            display: flex;
+            align-items: center;
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
             padding: 5px 10px;
-            font-size: 0.9em;
+        }
+
+        .search-bar-container input {
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            flex-grow: 1;
+            padding: 5px;
+        }
+
+        .search-bar-container img {
+            width: 20px;
+            height: 20px;
+            margin-right: 5px;
+        }
+
+        .container {
+            display: flex;
+            width: 90%;
+            max-width: 1200px;
+            margin: 50px auto;
+            gap: 20px;
+        }
+
+        .left-panel, .right-panel {
+            flex: 1;
+            background: var(--container-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--highlight-color);
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        input, textarea {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+            background-color: var(--container-bg);
+            color: var(--text-color);
+        }
+
+        button {
+            padding: 10px;
+            font-size: 1rem;
+            color: white;
+            background-color: var(--highlight-color);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3b82f6;
+        }
+
+        #messagesList .message {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: var(--container-bg);
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            color: var(--text-color);
+        }
+
+        .notification-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: 300px;
+            z-index: 1000;
+        }
+
+        .notification {
+            background-color: var(--notification-bg);
+            color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .notification .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+        }
+
+        .captcha-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .captcha {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--text-color);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .stats-panel {
+            background-color: var(--stat-panel-bg);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+            display: none; 
+            transition: all 0.3s ease-in-out;
+        }
+
+        .stats-panel h2 {
+            margin-top: 0;
+            color: var(--highlight-color);
+            font-size: 1.4rem;
+        }
+
+        .stats-panel p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+        }
+
+        .stats-panel .stat-label {
+            font-weight: bold;
+            color: var(--highlight-color);
+        }
+
+         Scrollable Area for Messages */
+        #messagesList {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
+    <div class="top-bar">
+        <div class="search-bar-container">
+            <img src="https://cdn-icons-png.flaticon.com/512/622/622669.png" alt="Search Icon">
+            <input type="text" id="searchBar" placeholder="Mesajları ara..." oninput="searchMessages()">
+        </div>
+        <div class="button-group">
+            <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌙</button>
+            <button id="toggleStatsButton" class="stats-toggle" onclick="toggleStatsPanel()">İstatistikleri Göster</button>
+            <button class="admin-button" onclick="redirectToAdmin()">Admin Paneli</button>
+        </div>
+    </div>
+
+    <!-- İstatistik Paneli Üst Kısımda -->
+    <div id="statsPanel" class="stats-panel">
+        <h2>Mesaj İstatistikleri</h2>
+        <p><span class="stat-label">Toplam Mesaj Sayısı:</span> <span id="totalMessagesCount">0</span></p>
+        <p><span class="stat-label">En Son Gönderen:</span> <span id="lastSender">Yok</span></p>
+    </div>
+
     <div class="container">
-        <h1>Messages</h1>
+        <div class="left-panel">
+            <h1>Mesaj Gönder</h1>
+            <form id="messageForm">
+                <input type="text" id="username" placeholder="Kullanıcı Adı" required>
+                <input type="email" id="email" placeholder="E-posta" required>
+                <textarea id="message" placeholder="Mesajınızı yazın..." required></textarea>
+                <div class="captcha-container">
+                    <span class="captcha" id="captchaText"></span>
+                    <input type="text" id="captchaInput" placeholder="CAPTCHA" required>
+                </div>
+                <button type="submit" id="sendButton">Gönder</button>
+            </form>
+        </div>
 
-        <!-- İletişim Formu -->
-        <form id="contactForm">
-            <input type="text" id="username" placeholder="Kullanıcı Adı" required />
-            <input type="email" id="email" placeholder="E-posta" required />
-            <textarea id="message" rows="5" placeholder="Mesajınızı yazın..." required></textarea>
-            <button type="submit">Gönder</button>
-        </form>
-
-        <!-- Mesajları Göster -->
-        <div id="messages"></div>
+        <div class="right-panel">
+            <h1>Gönderilen Mesajlar</h1>
+            <div id="messagesList">
+                <p>Henüz mesaj yok.</p>
+            </div>
+        </div>
     </div>
 
     <script>
-        // Mesajları API'den al ve listele
-        const loadMessages = () => {
-            fetch('http://localhost:3000/messages')
-                .then(response => response.json())
-                .then(data => {
-                    const messagesContainer = document.getElementById('messages');
-                    messagesContainer.innerHTML = '';
-                    if (data.length > 0) {
-                        data.forEach(message => {
-                            const messageDiv = document.createElement('div');
-                            messageDiv.className = 'message';
-                            messageDiv.innerHTML = `
-                                <div class="username">Kullanıcı Adı: ${message.username}</div>
-                                <div class="email">E-posta: ${message.email}</div>
-                                <div class="content">Mesaj: ${message.mesaj}</div>
-                                <div class="actions">
-                                    <button onclick="updateMessage('${message._id}')">Güncelle</button>
-                                    <button onclick="deleteMessage('${message._id}')">Sil</button>
-                                </div>
-                            `;
-                            messagesContainer.appendChild(messageDiv);
-                        });
-                    } else {
-                        messagesContainer.innerHTML = '<p>Mesaj bulunamadı.</p>';
-                    }
-                })
-                .catch(error => console.error('Mesajlar yüklenirken hata oluştu:', error));
+        const redirectToAdmin = () => {
+            window.location.href = '/admin';
         };
 
-        // Yeni mesaj ekleme
-        document.getElementById('contactForm').addEventListener('submit', event => {
-            event.preventDefault();
+        const toggleDarkMode = () => {
+            document.body.classList.toggle('dark-mode');
+            const mode = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            document.querySelector('.dark-mode-toggle').textContent = mode;
+        };
 
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const mesaj = document.getElementById('message').value;
+        const showNotification = (message, type = 'success') => {
+            const container = document.getElementById('notificationContainer');
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = ` 
+                <span>${message}</span>
+                <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(notification);
+            setTimeout(() => notification.remove(), 5000);
+        };
 
-            fetch('http://localhost:3000/messages', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, email, mesaj })
-            })
-                .then(() => {
-                    document.getElementById('contactForm').reset();
+        const createCaptcha = () => {
+            const captchaText = document.getElementById('captchaText');
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let captcha = '';
+            for (let i = 0; i < 6; i++) {
+                captcha += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            captchaText.textContent = captcha;
+        };
+
+        window.onload = () => {
+            createCaptcha();
+        };
+
+        const generateCaptcha = () => {
+            const captcha = Math.random().toString(36).substr(2, 6).toUpperCase();
+            document.getElementById('captchaText').textContent = captcha;
+        };
+
+        document.getElementById('messageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
+            const captchaInput = document.getElementById('captchaInput').value.trim();
+            const captchaText = document.getElementById('captchaText').textContent;
+            const timestamp = new Date().toISOString();
+
+            if (!username || !email || !message) {
+                showNotification('Lütfen tüm alanları doldurun.', 'error');
+                return;
+            }
+
+            if (captchaInput !== captchaText) {
+                showNotification('CAPTCHA doğrulama başarısız.', 'error');
+                generateCaptcha();
+                return;
+            }
+
+            try {
+                const response = await fetch('/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ username, email, mesaj: message, timestamp }),
+                });
+
+                if (response.ok) {
+                    showNotification('Mesajınız başarıyla gönderildi.');
+                    document.getElementById('messageForm').reset();
+                    generateCaptcha();
                     loadMessages();
-                })
-                .catch(error => console.error('Mesaj gönderilirken hata oluştu:', error));
+                } else {
+                    showNotification('Mesaj gönderilirken bir hata oluştu.', 'error');
+                }
+            } catch (error) {
+                showNotification('Bir bağlantı hatası oluştu. Lütfen daha sonra deneyin.', 'error');
+            }
         });
 
-        // Mesaj güncelleme
-        const updateMessage = id => {
-            const newMessage = prompt('Yeni mesajınızı girin:');
-            if (newMessage) {
-                fetch(`http://localhost:3000/messages/${id}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ mesaj: newMessage })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Güncelleme başarısız oldu.');
-                    }
-                    return response.json();
-                })
-                .then(() => loadMessages())
-                .catch(error => console.error('Güncelleme hatası:', error));
+        let allMessages = [];
+        const loadMessages = async () => {
+            try {
+                const response = await fetch('/messages');
+                if (!response.ok) throw new Error('Mesajlar alınamadı.');
+                allMessages = await response.json();
+                allMessages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+                renderMessages(allMessages);
+                updateStats(allMessages);
+            } catch (error) {
+                console.error('Hata:', error);
+                document.getElementById('messagesList').innerHTML = '<p>Mesajlar yüklenirken bir hata oluştu.</p>';
             }
         };
 
-        // Mesaj silme
-        const deleteMessage = id => {
-            if (confirm('Bu mesajı silmek istediğinize emin misiniz?')) {
-                fetch(`http://localhost:3000/messages/${id}`, {
-                    method: 'DELETE'
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Silme başarısız oldu.');
-                    }
-                    return response.json();
-                })
-                .then(() => loadMessages())
-                .catch(error => console.error('Silme hatası:', error));
+        const renderMessages = (messages) => {
+            const messagesList = document.getElementById('messagesList');
+            messagesList.innerHTML = '';
+
+            if (messages.length === 0) {
+                messagesList.innerHTML = '<p>Henüz mesaj yok.</p>';
+                return;
+            }
+
+            messages.forEach((msg) => {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message';
+                messageDiv.innerHTML = `
+                    <p><strong>Kullanıcı Adı:</strong> ${msg.username}</p>
+                    <p><strong>E-posta:</strong> ${msg.email}</p>
+                    <p><strong>Mesaj:</strong> ${msg.mesaj}</p>
+                    <p><small><strong>Tarih:</strong> ${new Date(msg.timestamp).toLocaleString()}</small></p>
+                `;
+                messagesList.appendChild(messageDiv);
+            });
+        };
+
+        const searchMessages = () => {
+            const searchTerm = document.getElementById('searchBar').value.toLowerCase();
+            const filteredMessages = allMessages.filter(msg => 
+                msg.username.toLowerCase().includes(searchTerm) || 
+                msg.email.toLowerCase().includes(searchTerm) || 
+                msg.mesaj.toLowerCase().includes(searchTerm)
+            );
+            renderMessages(filteredMessages);
+        };
+
+        const toggleStatsPanel = () => {
+            const statsPanel = document.getElementById('statsPanel');
+            const toggleButton = document.getElementById('toggleStatsButton');
+            if (statsPanel.style.display === 'none') {
+                statsPanel.style.display = 'block';
+                toggleButton.textContent = 'İstatistikleri Gizle';
+            } else {
+                statsPanel.style.display = 'none';
+                toggleButton.textContent = 'İstatistikleri Göster';
             }
         };
 
-        // Sayfa yüklendiğinde mesajları yükle
+        const updateStats = (messages) => {
+            const totalMessagesCount = messages.length;
+            const lastSender = totalMessagesCount > 0 ? messages[0].username : 'Yok';
+            document.getElementById('totalMessagesCount').textContent = totalMessagesCount;
+            document.getElementById('lastSender').textContent = lastSender;
+        };
+
         loadMessages();
     </script>
 </body>
